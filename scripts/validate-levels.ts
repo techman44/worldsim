@@ -8,9 +8,15 @@ import { LEVELS } from '../src/game/levels/index'
 import { ARCHETYPES } from '../src/game/archetypes'
 import { World } from '../src/sim/engine'
 import { ELEMENTS, E } from '../src/sim/elements'
+import { canPlace } from '../src/sim/paint'
 
 const W = 320
 const H = 180
+
+// place only where the PLAYER's brush could (respects the no-overwrite rule)
+function place(w: World, x: number, y: number, id: number) {
+  if (w.inBounds(x, y) && canPlace(w, x, y, id)) w.set(x, y, id)
+}
 
 // how long (sim steps) the intended solution is allowed to reach `done`
 const BUDGET: Record<string, number> = {
@@ -61,9 +67,11 @@ function applySolution(w: World, arch: string, p: any): ((step: number) => void)
       return
     }
     case 'quenchLava': {
-      // water columns through the lava
-      for (let x = 6; x < wdt - 6; x += 3) fill(w, x, 0, x, hgt - 1, E.WATER)
-      return
+      // pour water onto the lava sheet from above (player-faithful)
+      const surface = Math.floor(hgt * (p.topFrac ?? 0.58))
+      return (step) => {
+        if (step < BUDGET.quenchLava * 0.7) for (let x = 7; x < wdt - 8; x++) place(w, x, surface - 3, E.WATER)
+      }
     }
     case 'boilOff': {
       const surface = Math.floor(hgt * 0.5)
@@ -89,11 +97,14 @@ function applySolution(w: World, arch: string, p: any): ((step: number) => void)
     }
     case 'blastWall': {
       const [x0, y0, x1, y1] = p._region ?? [0, 0, 0, 0]
-      // pack the wall column with gunpowder, then light it
-      fill(w, x0, y0, x1, y1, E.GUNPOWDER)
-      w.set((x0 + x1) >> 1, y0, E.FIRE, 800)
-      void y1
-      return
+      // pack gunpowder against the wall and detonate, repeatedly — each blast
+      // opens the breach a little deeper (a player re-packs the new cavity)
+      return (step) => {
+        if (step % 90 === 0 && step < BUDGET.blastWall * 0.85) {
+          for (let x = x0 - 5; x <= x1; x++) for (let y = y0; y <= y1; y++) place(w, x, y, E.GUNPOWDER)
+          w.set(x0 - 3, (y0 + y1) >> 1, E.FIRE, 800)
+        }
+      }
     }
     case 'growCrystals': {
       // flood the basin with water so the floor seeds spread through it

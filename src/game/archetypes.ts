@@ -163,12 +163,16 @@ export const ARCHETYPES: Record<string, Archetype> = {
     forbidInPalette: [E.OBSIDIAN],
     build(w, p) {
       w.clear()
-      const surface = Math.floor(w.height * (p.topFrac ?? 0.55))
-      for (let x = 0; x < w.width; x++)
-        for (let y = surface; y < w.height; y++) {
-          const edge = x < 5 || x > w.width - 6 || y > w.height - 4
-          w.set(x, y, edge ? E.ROCK : E.LAVA)
-        }
+      const h = w.height
+      const wd = w.width
+      const surface = Math.floor(h * (p.topFrac ?? 0.58))
+      const depth = p.depth ?? 3
+      // a thin, wide lava sheet on a stone basin — shallow enough that water
+      // poured on top reaches (and quenches) it instead of crusting over a deep pool
+      fillRect(w, 0, surface + depth, wd - 1, h - 1, E.STONE)
+      fillRect(w, 5, surface - 1, 6, surface + depth, E.ROCK)
+      fillRect(w, wd - 7, surface - 1, wd - 6, surface + depth, E.ROCK)
+      fillRect(w, 7, surface, wd - 8, surface + depth - 1, E.LAVA)
       w.wakeAll()
     },
     check(w, p) {

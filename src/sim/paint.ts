@@ -1,7 +1,25 @@
 import { World } from './engine'
+import { ELEMENTS, E } from './elements'
+import { Category } from './types'
 
 // Brush / line / flood-fill operations, with optional vertical mirror for fast
 // symmetric building.
+
+/**
+ * Can the player's brush write `element` into the cell at (x,y)?
+ * A brush only fills empty space (or air-like gas), so it never silently erases
+ * a structure beneath it. The eraser removes anything, and "destructive"
+ * materials (acid, lava, fire…) may be painted over solids on purpose.
+ */
+export function canPlace(world: World, x: number, y: number, element: number): boolean {
+  if (element === E.EMPTY) return true // eraser
+  const t = world.get(x, y)
+  if (t === E.EMPTY) return true
+  if (t === E.WALL) return false // walls are never paintable over
+  const tEl = ELEMENTS[t]
+  if (tEl?.category === Category.Gas) return true // gases are air-like
+  return !!ELEMENTS[element]?.overwrites // only destructive brushes go over matter
+}
 
 function stampCircle(world: World, cx: number, cy: number, r: number, element: number, fixed: boolean) {
   const r2 = r * r
@@ -10,7 +28,7 @@ function stampCircle(world: World, cx: number, cy: number, r: number, element: n
       if (dx * dx + dy * dy > r2) continue
       const x = Math.round(cx) + dx
       const y = Math.round(cy) + dy
-      if (world.inBounds(x, y)) {
+      if (world.inBounds(x, y) && canPlace(world, x, y, element)) {
         world.set(x, y, element)
         if (fixed) world.markFixed(x, y)
       }

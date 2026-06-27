@@ -50,7 +50,7 @@ export const blastWall: Level[] = [
     hint: "A continuous gunpowder train carries the spark deep into the wall.",
     tier: 4,
     archetype: "blastWall",
-    params: { width: 7, height: 30, clear: 0.5 },
+    params: { width: 7, height: 30, clear: 0.45 },
     allowed: [E.GUNPOWDER, E.SPARK, E.FIRE, E.WALL],
   },
   {
@@ -60,7 +60,7 @@ export const blastWall: Level[] = [
     hint: "Pack the wall with gunpowder, then touch it off with a spark or flame.",
     tier: 5,
     archetype: "blastWall",
-    params: { width: 9, height: 34, clear: 0.5 },
+    params: { width: 9, height: 34, clear: 0.45 },
     allowed: null,
   },
   {
@@ -70,7 +70,7 @@ export const blastWall: Level[] = [
     hint: "Only a packed explosive will clear this much, so build a gunpowder charge and ignite it.",
     tier: 5,
     archetype: "blastWall",
-    params: { width: 9, height: 34, clear: 0.55 },
+    params: { width: 9, height: 34, clear: 0.45 },
     allowed: null,
   },
   {
@@ -80,7 +80,7 @@ export const blastWall: Level[] = [
     hint: "Pack gunpowder against the stone, then touch it off with a single spark.",
     tier: 6,
     archetype: "blastWall",
-    params: { width: 9, height: 34, clear: 0.5 },
+    params: { width: 9, height: 34, clear: 0.45 },
     allowed: null,
   },
   {
@@ -90,7 +90,7 @@ export const blastWall: Level[] = [
     hint: "Deduce the explosive element, pack the full wall with it, and set it off.",
     tier: 6,
     archetype: "blastWall",
-    params: { width: 10, height: 36, clear: 0.6 },
+    params: { width: 10, height: 36, clear: 0.45 },
     allowed: null,
   },
 ]

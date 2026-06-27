@@ -70,6 +70,12 @@ export interface Element {
   boilsInto?: number
   /** acids corrode this unless `acidProof` */
   acidProof?: boolean
+  /**
+   * "Destructive" materials (acid, lava, fire…) the player may paint directly
+   * over existing solids. Everything else only paints into empty space/gas, so
+   * a brush never silently erases a structure beneath it.
+   */
+  overwrites?: boolean
   /** initial temperature when placed */
   baseTemp?: number
   /** continuously emits this much heat to itself/neighbours */

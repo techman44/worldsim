@@ -99,7 +99,7 @@ def({
   color: [120, 122, 128],
   colorNoise: 0.16,
   density: 50,
-  meltsAt: 1100,
+  meltsAt: 1300, // above lava's own heat, so a lava pool doesn't melt its basin
   meltsInto: E.LAVA,
   icon: 'stone',
   description: 'Solid rock. Melts into lava under extreme heat.',
@@ -111,7 +111,7 @@ def({
   color: [98, 92, 86],
   colorNoise: 0.2,
   density: 55,
-  meltsAt: 1150,
+  meltsAt: 1350,
   meltsInto: E.LAVA,
   icon: 'rock',
 })
@@ -330,6 +330,7 @@ def({
 def({
   id: E.LAVA,
   name: 'Lava',
+  overwrites: true,
   category: Category.Liquid,
   color: [240, 120, 36],
   colorNoise: 0.18,
@@ -346,6 +347,7 @@ def({
 def({
   id: E.ACID,
   name: 'Acid',
+  overwrites: true,
   category: Category.Liquid,
   color: [150, 230, 70],
   colorNoise: 0.12,
@@ -475,6 +477,7 @@ def({
 def({
   id: E.FIRE,
   name: 'Fire',
+  overwrites: true,
   category: Category.Energy,
   color: [255, 150, 40],
   colorNoise: 0.2,
@@ -507,6 +510,7 @@ def({
 def({
   id: E.EMBER,
   name: 'Ember',
+  overwrites: true,
   category: Category.Powder,
   color: [220, 90, 30],
   colorNoise: 0.25,
@@ -533,6 +537,7 @@ def({
 def({
   id: E.SPARK,
   name: 'Spark',
+  overwrites: true,
   category: Category.Energy,
   color: [255, 244, 150],
   colorNoise: 0.2,
@@ -562,6 +567,7 @@ def({
 def({
   id: E.LIGHTNING,
   name: 'Lightning',
+  overwrites: true,
   category: Category.Energy,
   color: [220, 230, 255],
   colorNoise: 0.1,
