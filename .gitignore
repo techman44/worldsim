@@ -1,0 +1,14 @@
+node_modules/
+dist/
+dist-ssr/
+*.local
+.DS_Store
+.vite/
+
+# generated app icons (rebuilt by scripts/gen-icons.mjs on dev/build)
+public/icons/
+public/apple-touch-icon.png
+public/favicon.svg
+
+# scratch
+_smoke*.mjs
