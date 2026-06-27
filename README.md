@@ -9,7 +9,7 @@ A **falling-sand world simulator** that installs as a Progressive Web App on pho
 - **Cellular-automaton engine** — a grid of cells with powders, liquids, gases, energy and life, each driven by data-defined behavior and pairwise reactions.
 - **Temperature model** — heat from lava/fire and cold from ice/snow drive melting, freezing, boiling, igniting and the water→steam→cloud→rain loop.
 - **30+ elements** — sand, dirt, stone, rock, wood, metal, glass, water, lava, acid, oil, fire, smoke, steam, ash, snow, ice, plant, vine, seed, gunpowder, salt, cloud, spark, obsidian, mud, slime, sandstone, methane, crystal, gold, ember, lightning…
-- **Tools** — paint, erase, adjustable brush, drag/line painting, flood fill, eyedropper, and a vertical **mirror** mode for fast symmetric builds.
+- **Tools** — paint, erase, adjustable brush, drag/line painting, flood fill, eyedropper, a vertical **mirror** mode, and a **Static** toggle that pins painted solids/powders so they don't fall (build floating walls & platforms; liquids always flow).
 - **Stamps** — castle, house, car, monster truck, tree, pond, volcano cone, rocket — authored as ASCII art, trivial to extend.
 - **Events** — volcano, tornado, lightning, snowstorm, rain, earthquake, meteor — with screen shake, flash, haptics and synthesized sound.
 - **Challenges** — **100+ puzzle levels across 6 difficulty tiers** (grow a forest, fill the well, freeze the lake, quench lava, dissolve a vault, breach a wall…), built on a validated *archetype* system and organised into modular per-mechanic packs. Early tiers restrict the palette; later tiers hand you everything and the puzzle is working out *which* element to use. Plus a free-play sandbox.

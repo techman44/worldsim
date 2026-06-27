@@ -109,6 +109,11 @@ export class UI {
       mirror.classList.toggle('active', state.mirror)
     })
     rail.appendChild(mirror)
+    const pin = this.iconBtn('pin', 'Static build (pin solids so they don’t fall)', () => {
+      state.staticPaint = !state.staticPaint
+      pin.classList.toggle('active', state.staticPaint)
+    })
+    rail.appendChild(pin)
     this.root.appendChild(rail)
   }
 

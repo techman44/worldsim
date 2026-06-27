@@ -194,14 +194,11 @@ export const ARCHETYPES: Record<string, Archetype> = {
       const right = cx + (bw >> 1)
       const top = surface - bh
       const bottom = surface - 1
-      // a hollow wooden cabin: walls (2 thick) + floor, open top. Hollow so that
-      // water poured in reaches every wall cell and douses it.
+      // a hollow wooden cabin: walls (2 thick) + floor, fully open top so water
+      // poured in reaches every wall cell and douses it (no unreachable beams).
       fillRect(w, left, top, left + 1, bottom, E.WOOD)
       fillRect(w, right - 1, top, right, bottom, E.WOOD)
       fillRect(w, left, bottom - 1, right, bottom, E.WOOD)
-      // a roof beam across the top (still leaves the centre open to pour into)
-      fillRect(w, left, top, left + 3, top + 1, E.WOOD)
-      fillRect(w, right - 3, top, right, top + 1, E.WOOD)
       const total = countId(w, E.WOOD)
       p._keep = Math.floor(total * (p.keep ?? 0.5))
       // start a fire low on one wall
@@ -321,8 +318,9 @@ export const ARCHETYPES: Record<string, Archetype> = {
       const top = surface + 3
       const bot = h - 4
       fillRect(w, x0, top, x1, bot, E.EMPTY)
-      // crystal seeds along the basin floor (dry — they won't grow until flooded)
-      for (let x = x0 + 2; x <= x1 - 2; x += 5) w.set(x, bot, E.CRYSTAL)
+      // a few crystal seeds on the basin floor (dry — they won't grow until
+      // flooded); spaced out so the starting count stays well below any goal
+      for (let x = x0 + 4; x <= x1 - 4; x += 14) w.set(x, bot, E.CRYSTAL)
       w.wakeAll()
     },
     check(w, p) {

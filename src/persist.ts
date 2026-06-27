@@ -38,7 +38,8 @@ export function decodeWorld(world: World, save: WorldSave) {
     const n = save.rle[r + 1]
     for (let k = 0; k < n; k++) cells[i++] = id
   }
-  // reset temperature / life from element defaults
+  // reset temperature / life / pin state from element defaults
+  world.fixed.fill(0)
   for (let p = 0; p < cells.length; p++) {
     const el = ELEMENTS[cells[p]]
     world.temp[p] = el?.baseTemp ?? world.ambient

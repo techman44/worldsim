@@ -91,6 +91,7 @@ const ICONS: Record<string, string> = {
   trophy: L('<path d="M8 4h8v4a4 4 0 01-8 0z"/><path d="M8 6H5v1a3 3 0 003 3M16 6h3v1a3 3 0 01-3 3"/><path d="M12 12v4M9 20h6M10 16h4l1 4H9z"/>'),
   info: L('<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>'),
   flag: L('<path d="M6 21V4M6 4h11l-2 4 2 4H6"/>'),
+  pin: L('<path d="M12 17v5M9 3h6l-1 4 3 3v2H7v-2l3-3z"/>'),
 }
 
 export function icon(name: string): string {

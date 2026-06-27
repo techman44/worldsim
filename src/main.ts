@@ -206,8 +206,8 @@ function handleStrokePoint(wx: number, wy: number, start: boolean, px?: number, 
   const y = wy
   switch (state.tool) {
     case 'paint':
-      if (start || px === undefined) paintCircle(world, x, y, state.brush, state.element, state.mirror)
-      else paintLine(world, px, py!, x, y, state.brush, state.element, state.mirror)
+      if (start || px === undefined) paintCircle(world, x, y, state.brush, state.element, state.mirror, state.staticPaint)
+      else paintLine(world, px, py!, x, y, state.brush, state.element, state.mirror, state.staticPaint)
       break
     case 'erase':
       if (start || px === undefined) paintCircle(world, x, y, state.brush, 0, state.mirror)

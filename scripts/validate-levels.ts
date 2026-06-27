@@ -19,7 +19,7 @@ const BUDGET: Record<string, number> = {
   freezeLake: 4000,
   forgeGlass: 3500,
   quenchLava: 2500,
-  extinguish: 800,
+  extinguish: 1600,
   dissolveBarrier: 6000,
   blastWall: 600,
   boilOff: 2500,
@@ -72,11 +72,12 @@ function applySolution(w: World, arch: string, p: any): ((step: number) => void)
       return
     }
     case 'extinguish': {
-      // douse the whole structure area with water from above
+      // pour a heavy curtain of water down into the open-top cabin for a while
       const surface = Math.floor(hgt * 0.7)
-      fill(w, (wdt >> 1) - 12, surface - 16, (wdt >> 1) + 12, surface - 14, E.WATER)
+      const cx = wdt >> 1
+      const half = ((p.width ?? 24) >> 1) - 2
       return (step) => {
-        if (step < 60) fill(w, (wdt >> 1) - 12, surface - 16, (wdt >> 1) + 12, surface - 16, E.WATER)
+        if (step < 700) fill(w, cx - half, surface - 22, cx + half, surface - 20, E.WATER)
       }
     }
     case 'dissolveBarrier': {

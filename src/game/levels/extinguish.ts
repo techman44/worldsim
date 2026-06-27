@@ -10,7 +10,7 @@ export const extinguish: Level[] = [
     hint: "Pour water straight down onto the flames to snuff them out.",
     tier: 1,
     archetype: "extinguish",
-    params: { stamp: "house", fuel: E.WOOD, keep: 0.65 },
+    params: { stamp: "house", fuel: E.WOOD, keep: 0.5 },
     allowed: [E.WATER, E.SAND],
   },
   {
@@ -20,7 +20,7 @@ export const extinguish: Level[] = [
     hint: "Flood the flames with water and bank the embers under sand.",
     tier: 2,
     archetype: "extinguish",
-    params: { stamp: "house", fuel: E.WOOD, keep: 0.6 },
+    params: { stamp: "house", fuel: E.WOOD, keep: 0.5 },
     allowed: [E.WATER, E.SAND],
   },
   {
@@ -30,7 +30,7 @@ export const extinguish: Level[] = [
     hint: "Water smothers fire instantly. Act fast — flames spread!",
     tier: 2,
     archetype: "extinguish",
-    params: { stamp: "house", fuel: E.WOOD, keep: 0.55 },
+    params: { stamp: "house", fuel: E.WOOD, keep: 0.5 },
     allowed: [E.WATER, E.SAND],
   },
   {
@@ -40,7 +40,7 @@ export const extinguish: Level[] = [
     hint: "Smother the fire with water before it climbs the upper beams.",
     tier: 3,
     archetype: "extinguish",
-    params: { stamp: "house", fuel: E.WOOD, keep: 0.55 },
+    params: { stamp: "house", fuel: E.WOOD, keep: 0.5 },
     allowed: [E.WATER, E.SAND],
   },
   {
@@ -90,7 +90,7 @@ export const extinguish: Level[] = [
     hint: "Water drowns the flames; a little sand can starve stubborn embers.",
     tier: 6,
     archetype: "extinguish",
-    params: { stamp: "house", fuel: E.WOOD, keep: 0.6 },
+    params: { stamp: "house", fuel: E.WOOD, keep: 0.5 },
     allowed: null,
   },
 ]

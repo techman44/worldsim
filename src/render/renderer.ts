@@ -62,6 +62,7 @@ export class Renderer {
     const cells = this.world.cells
     const temp = this.world.temp
     const life = this.world.life
+    const fixed = this.world.fixed
     const d = this.img.data
     const gd = this.glowImg.data
     const frame = this.world.frame
@@ -143,6 +144,13 @@ export class Renderer {
           } else if (id === E.CRYSTAL) {
             emissiveStrength = 0.35
           }
+        }
+
+        // pinned (static-build) cells get a subtle frosted highlight
+        if (fixed[row]) {
+          r = Math.min(255, r * 0.85 + 36)
+          g = Math.min(255, g * 0.85 + 40)
+          b = Math.min(255, b * 0.85 + 46)
         }
 
         d[o] = r

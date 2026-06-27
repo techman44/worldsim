@@ -26,6 +26,8 @@ export class World implements SimView {
   readonly cells: Uint8Array
   readonly temp: Int16Array
   readonly life: Uint8Array
+  /** 1 = "pinned" cell: ignores gravity and can't be displaced (build mode) */
+  readonly fixed: Uint8Array
   private readonly stamp: Uint32Array
   frame = 0
   ambient = 20
@@ -45,6 +47,7 @@ export class World implements SimView {
     this.cells = new Uint8Array(n)
     this.temp = new Int16Array(n).fill(this.ambient)
     this.life = new Uint8Array(n)
+    this.fixed = new Uint8Array(n)
     this.stamp = new Uint32Array(n)
     this.chunksX = Math.ceil(width / CHUNK)
     this.chunksY = Math.ceil(height / CHUNK)
@@ -121,12 +124,30 @@ export class World implements SimView {
     const el = ELEMENTS[id]
     this.temp[i] = temp ?? el?.baseTemp ?? this.ambient
     this.life[i] = el?.initialLife ?? 0
+    this.fixed[i] = 0 // any element change releases a pinned cell
     this.wake(x, y)
+  }
+
+  isFixed(x: number, y: number) {
+    if (!this.inBounds(x, y)) return false
+    return this.fixed[y * this.width + x] === 1
+  }
+
+  /** Pin a powder/solid cell in place (build mode). Liquids/gases never pin. */
+  markFixed(x: number, y: number) {
+    if (!this.inBounds(x, y)) return
+    const i = y * this.width + x
+    const el = ELEMENTS[this.cells[i]]
+    if (!el) return
+    if (el.category === Category.Powder || el.category === Category.Solid || el.category === Category.Life) {
+      this.fixed[i] = 1
+    }
   }
 
   swap(x1: number, y1: number, x2: number, y2: number) {
     const i = y1 * this.width + x1
     const j = y2 * this.width + x2
+    if (this.fixed[i] || this.fixed[j]) return // pinned cells don't move
     const c = this.cells[i]
     this.cells[i] = this.cells[j]
     this.cells[j] = c
@@ -373,6 +394,8 @@ export class World implements SimView {
             // grow, so slow stochastic growth never stalls when a region settles
             if (el.restless && this.hasGrowthRoom(x, y)) this.wake(x, y)
 
+            if (this.fixed[i]) continue // pinned cells react/heat but never move
+
             switch (el.category) {
               case Category.Powder:
                 this.movePowder(x, y, el.density)
@@ -405,6 +428,7 @@ export class World implements SimView {
     this.cells.fill(E.EMPTY)
     this.temp.fill(this.ambient)
     this.life.fill(0)
+    this.fixed.fill(0)
     this.wakeAll()
   }
 }
