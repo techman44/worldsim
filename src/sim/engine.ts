@@ -12,6 +12,11 @@ function rng(): number {
   return ((_seed >>> 0) % 1000000) / 1000000
 }
 
+/** Reset the PRNG (used by the headless validator for reproducible runs). */
+export function reseedRng(seed: number) {
+  _seed = (seed | 0) || 1
+}
+
 /**
  * The world grid + cellular-automaton step. Implements SimView so element
  * hooks can read/write cells without knowing about the storage layout.

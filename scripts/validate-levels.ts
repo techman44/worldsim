@@ -6,7 +6,7 @@
 // Bundled + run via esbuild (see the `validate` npm script).
 import { LEVELS } from '../src/game/levels/index'
 import { ARCHETYPES } from '../src/game/archetypes'
-import { World } from '../src/sim/engine'
+import { World, reseedRng } from '../src/sim/engine'
 import { ELEMENTS, E } from '../src/sim/elements'
 import { canPlace } from '../src/sim/paint'
 
@@ -25,7 +25,7 @@ const BUDGET: Record<string, number> = {
   freezeLake: 4000,
   forgeGlass: 3500,
   quenchLava: 2500,
-  extinguish: 1600,
+  extinguish: 2200,
   dissolveBarrier: 6000,
   blastWall: 600,
   boilOff: 2500,
@@ -85,7 +85,9 @@ function applySolution(w: World, arch: string, p: any): ((step: number) => void)
       const cx = wdt >> 1
       const half = ((p.width ?? 24) >> 1) - 2
       return (step) => {
-        if (step < 700) fill(w, cx - half, surface - 22, cx + half, surface - 20, E.WATER)
+        // keep a steady curtain of water falling for most of the run so even a
+        // stray flame above the waterline is eventually doused
+        if (step < BUDGET.extinguish * 0.8) fill(w, cx - half, surface - 22, cx + half, surface - 20, E.WATER)
       }
     }
     case 'dissolveBarrier': {
@@ -139,6 +141,7 @@ interface Result {
 }
 
 function simulateSolves(arch: string, params: any): { done: boolean; peak: string } {
+  reseedRng(0x1234abcd)
   const w = new World(W, H)
   const p = { ...params }
   ARCHETYPES[arch].build(w, p)
@@ -191,6 +194,7 @@ function validate(level: (typeof LEVELS)[number]): Result {
   if (start.done) problems.push(`already solved at start (trivial)`)
 
   // not passively winnable
+  reseedRng(0x0f0f1234)
   const w2 = new World(W, H)
   const p2 = { ...(level.params ?? {}) }
   arch.build(w2, p2)
