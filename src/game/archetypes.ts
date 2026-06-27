@@ -1,6 +1,5 @@
 import { World } from '../sim/engine'
 import { E } from '../sim/elements'
-import { STAMPS, placeStamp } from '../sim/stamps'
 
 // ----------------------------------------------------------------------------
 // Archetypes are tested, correct-by-construction level mechanics. A Level is
@@ -25,6 +24,12 @@ export interface Archetype {
   check: (world: World, p: any) => LevelCheck
   /** the elements this mechanic is intended to be solved with */
   defaultAllowed: number[]
+  /**
+   * Elements that must NEVER be in the palette — typically the result element,
+   * so the puzzle can't be solved by simply painting the answer. Stripped from
+   * any level's palette (the win must come from physics).
+   */
+  forbidInPalette?: number[]
 }
 
 // --- shared helpers ----------------------------------------------------------
@@ -111,10 +116,12 @@ export const ARCHETYPES: Record<string, Archetype> = {
     },
   },
 
-  // Freeze a lake. params: { ratio }
+  // Freeze a lake. params: { ratio }. Solved with SNOW — cold propagates through
+  // the water and freezes it; ICE is never paintable (no cheating).
   freezeLake: {
     id: 'freezeLake',
-    defaultAllowed: [E.SNOW, E.ICE],
+    defaultAllowed: [E.SNOW],
+    forbidInPalette: [E.ICE],
     build(w, p) {
       w.clear()
       const surface = Math.floor(w.height * (p.topFrac ?? 0.5))
@@ -134,6 +141,7 @@ export const ARCHETYPES: Record<string, Archetype> = {
   forgeGlass: {
     id: 'forgeGlass',
     defaultAllowed: [E.LAVA],
+    forbidInPalette: [E.GLASS],
     build(w, p) {
       w.clear()
       const surface = Math.floor(w.height * (p.depthFrac ?? 0.45))
@@ -152,14 +160,19 @@ export const ARCHETYPES: Record<string, Archetype> = {
   quenchLava: {
     id: 'quenchLava',
     defaultAllowed: [E.WATER],
+    forbidInPalette: [E.OBSIDIAN],
     build(w, p) {
       w.clear()
-      const surface = Math.floor(w.height * (p.topFrac ?? 0.55))
-      for (let x = 0; x < w.width; x++)
-        for (let y = surface; y < w.height; y++) {
-          const edge = x < 5 || x > w.width - 6 || y > w.height - 4
-          w.set(x, y, edge ? E.ROCK : E.LAVA)
-        }
+      const h = w.height
+      const wd = w.width
+      const surface = Math.floor(h * (p.topFrac ?? 0.58))
+      const depth = p.depth ?? 3
+      // a thin, wide lava sheet on a stone basin — shallow enough that water
+      // poured on top reaches (and quenches) it instead of crusting over a deep pool
+      fillRect(w, 0, surface + depth, wd - 1, h - 1, E.STONE)
+      fillRect(w, 5, surface - 1, 6, surface + depth, E.ROCK)
+      fillRect(w, wd - 7, surface - 1, wd - 6, surface + depth, E.ROCK)
+      fillRect(w, 7, surface, wd - 8, surface + depth - 1, E.LAVA)
       w.wakeAll()
     },
     check(w, p) {
@@ -169,7 +182,9 @@ export const ARCHETYPES: Record<string, Archetype> = {
     },
   },
 
-  // Put out a burning structure, saving most of the flammable. params: { stamp, keep }
+  // Put out a burning wooden store-house and save most of its timber. It's an
+  // OPEN-TOP enclosure so poured water can actually reach the flames inside.
+  // params: { keep, width }
   extinguish: {
     id: 'extinguish',
     defaultAllowed: [E.WATER, E.SAND],
@@ -177,17 +192,26 @@ export const ARCHETYPES: Record<string, Archetype> = {
       w.clear()
       const surface = flatGround(w, E.PLANT, 6, E.DIRT, E.STONE, 0.7)
       const cx = (w.width / 2) | 0
-      const stamp = STAMPS.find((s) => s.id === (p.stamp ?? 'house')) ?? STAMPS[1]
-      placeStamp(w, stamp, cx, surface)
-      const total = countId(w, p.fuel ?? E.WOOD)
-      p._keep = Math.floor(total * (p.keep ?? 0.6))
-      // ignite a corner
+      const bw = p.width ?? 24
+      const bh = 16
+      const left = cx - (bw >> 1)
+      const right = cx + (bw >> 1)
+      const top = surface - bh
+      const bottom = surface - 1
+      // a hollow wooden cabin: single-thickness walls + floor, fully open top so
+      // water poured inside reaches every wall cell (each has interior water on
+      // one side) and douses it.
+      fillRect(w, left, top, left, bottom, E.WOOD)
+      fillRect(w, right, top, right, bottom, E.WOOD)
+      fillRect(w, left, bottom, right, bottom, E.WOOD)
+      const total = countId(w, E.WOOD)
+      p._keep = Math.floor(total * (p.keep ?? 0.5))
+      // start a fire low on one wall
       let lit = 0
-      for (let attempt = 0; attempt < 200 && lit < 16; attempt++) {
-        const x = cx - 6 + ((Math.sin(attempt * 12.9) * 9999) % 10 | 0)
-        const y = surface - 2 - ((Math.cos(attempt * 7.3) * 9999) % 6 | 0)
-        if (w.get(x, y) === (p.fuel ?? E.WOOD)) {
-          w.set(x, y, E.FIRE, 700)
+      for (let attempt = 0; attempt < 400 && lit < 5; attempt++) {
+        const y = bottom - 2 - ((Math.abs(Math.cos(attempt * 7.3)) * 8) | 0)
+        if (w.get(left, y) === E.WOOD) {
+          w.set(left, y, E.FIRE, 700)
           lit++
         }
       }
@@ -195,7 +219,7 @@ export const ARCHETYPES: Record<string, Archetype> = {
     },
     check(w, p) {
       const fire = countId(w, E.FIRE) + countId(w, E.EMBER)
-      const fuel = countId(w, p.fuel ?? E.WOOD)
+      const fuel = countId(w, E.WOOD)
       const keep = p._keep ?? 30
       const done = fire === 0 && fuel >= keep
       return {
@@ -261,6 +285,7 @@ export const ARCHETYPES: Record<string, Archetype> = {
   boilOff: {
     id: 'boilOff',
     defaultAllowed: [E.LAVA],
+    forbidInPalette: [E.STEAM],
     build(w, _p) {
       w.clear()
       const surface = Math.floor(w.height * 0.5)
@@ -279,16 +304,28 @@ export const ARCHETYPES: Record<string, Archetype> = {
     },
   },
 
-  // Grow crystals near water. params: { goal }
+  // Grow crystals in a cavern basin. The basin starts DRY with crystal seeds on
+  // its floor; crystals only grow through water, so the player must flood the
+  // basin and let the seeds spread. params: { goal }. Solved with WATER.
   growCrystals: {
     id: 'growCrystals',
-    defaultAllowed: [E.CRYSTAL, E.WATER],
+    defaultAllowed: [E.WATER],
+    forbidInPalette: [E.CRYSTAL],
     build(w, _p) {
       w.clear()
-      const surface = flatGround(w, E.STONE, 10, E.STONE, E.ROCK, 0.4)
-      // a cavern pool
-      const cx = (w.width / 2) | 0
-      fillRect(w, cx - 18, surface + 2, cx + 18, surface + 8, E.WATER)
+      const h = w.height
+      const wdt = w.width
+      const surface = Math.floor(h * 0.42)
+      // solid stone, then carve an empty basin
+      fillRect(w, 0, surface, wdt - 1, h - 1, E.STONE)
+      const x0 = 10
+      const x1 = wdt - 11
+      const top = surface + 3
+      const bot = h - 4
+      fillRect(w, x0, top, x1, bot, E.EMPTY)
+      // a few crystal seeds on the basin floor (dry — they won't grow until
+      // flooded); spaced out so the starting count stays well below any goal
+      for (let x = x0 + 4; x <= x1 - 4; x += 14) w.set(x, bot, E.CRYSTAL)
       w.wakeAll()
     },
     check(w, p) {

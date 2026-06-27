@@ -9,10 +9,10 @@ A **falling-sand world simulator** that installs as a Progressive Web App on pho
 - **Cellular-automaton engine** — a grid of cells with powders, liquids, gases, energy and life, each driven by data-defined behavior and pairwise reactions.
 - **Temperature model** — heat from lava/fire and cold from ice/snow drive melting, freezing, boiling, igniting and the water→steam→cloud→rain loop.
 - **30+ elements** — sand, dirt, stone, rock, wood, metal, glass, water, lava, acid, oil, fire, smoke, steam, ash, snow, ice, plant, vine, seed, gunpowder, salt, cloud, spark, obsidian, mud, slime, sandstone, methane, crystal, gold, ember, lightning…
-- **Tools** — paint, erase, adjustable brush, drag/line painting, flood fill, eyedropper, and a vertical **mirror** mode for fast symmetric builds.
+- **Tools** — paint, erase, adjustable brush, drag/line painting, flood fill, eyedropper, a vertical **mirror** mode, and a **Static** toggle that pins painted solids/powders so they don't fall (build floating walls & platforms; liquids always flow).
 - **Stamps** — castle, house, car, monster truck, tree, pond, volcano cone, rocket — authored as ASCII art, trivial to extend.
 - **Events** — volcano, tornado, lightning, snowstorm, rain, earthquake, meteor — with screen shake, flash, haptics and synthesized sound.
-- **Challenges** — **30 puzzle levels across 6 difficulty tiers** (grow a forest, fill the well, freeze the lake, quench lava, dissolve a vault, breach a wall…), built on a validated *archetype* system. Early tiers restrict the palette; later tiers hand you everything and the puzzle is working out *which* element to use. Plus a free-play sandbox.
+- **Challenges** — **100+ puzzle levels across 6 difficulty tiers** (grow a forest, fill the well, freeze the lake, quench lava, dissolve a vault, breach a wall…), built on a validated *archetype* system and organised into modular per-mechanic packs. Early tiers restrict the palette; later tiers hand you everything and the puzzle is working out *which* element to use. Plus a free-play sandbox.
 - **Procedural terrain** generator for instant starting worlds.
 - **Mobile-first UI** — icon palette, tool rail, time controls (pause/play/step/speed), one-finger draw, two-finger pan & pinch-zoom.
 - **Looks good** — per-cell color noise, emissive glow/bloom on lava & fire, a particle overlay, a sky gradient and an optional day/night cycle.
@@ -56,7 +56,9 @@ src/
     terrain.ts          #   procedural terrain generator
   game/
     archetypes.ts       #   tested, parameterised level mechanics (build + win check)
-    levels.ts           #   level DATA (30 levels = archetype + params + flavour)
+    levels/             #   level DATA, one modular pack file per mechanic
+      index.ts          #     aggregates every pack into LEVELS
+      growForest.ts …   #     ~100 levels = archetype + params + flavour
     challenges.ts       #   binds levels to archetypes -> runtime challenges
   render/
     renderer.ts         #   ImageData draw + per-cell noise + emissive glow + sky
@@ -143,7 +145,9 @@ where it happens. It appears in the Event tool automatically.
 ### Add a challenge level
 
 Challenges are split into **archetypes** (tested mechanics) and **levels**
-(data). To add a level, append an entry to `LEVELS` in `src/game/levels.ts`:
+(data). Levels are modular: each mechanic has its own pack file under
+`src/game/levels/` (e.g. `forgeGlass.ts`), aggregated by `levels/index.ts`. To
+add a level, append an entry to the relevant pack file:
 
 ```ts
 {
@@ -161,7 +165,8 @@ Challenges are split into **archetypes** (tested mechanics) and **levels**
 Because the mechanic is a tested archetype, the level is guaranteed to compile,
 start un-solved and be solvable. To add a brand-new *mechanic*, add an
 `Archetype` (a `build(world, params)` + `check(world, params)`) to
-`src/game/archetypes.ts`.
+`src/game/archetypes.ts`, then create a `src/game/levels/<archetype>.ts` pack
+and add one import line to `levels/index.ts`.
 
 Run `npm run validate` to prove every level builds, starts un-solved, isn't
 winnable by doing nothing, and has a reachable goal — it runs the real engine

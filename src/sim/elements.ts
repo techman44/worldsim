@@ -63,12 +63,6 @@ function anyNeighbour(v: SimView, x: number, y: number, id: number, eight = fals
   for (const [dx, dy] of list) if (v.get(x + dx, y + dy) === id) return true
   return false
 }
-function countNeighbour(v: SimView, x: number, y: number, id: number): number {
-  let c = 0
-  for (const [dx, dy] of NEIGH8) if (v.get(x + dx, y + dy) === id) c++
-  return c
-}
-
 // The registry. Index in this array === element id.
 export const ELEMENTS: Element[] = []
 function def(e: Element) {
@@ -105,7 +99,7 @@ def({
   color: [120, 122, 128],
   colorNoise: 0.16,
   density: 50,
-  meltsAt: 1100,
+  meltsAt: 1300, // above lava's own heat, so a lava pool doesn't melt its basin
   meltsInto: E.LAVA,
   icon: 'stone',
   description: 'Solid rock. Melts into lava under extreme heat.',
@@ -117,7 +111,7 @@ def({
   color: [98, 92, 86],
   colorNoise: 0.2,
   density: 55,
-  meltsAt: 1150,
+  meltsAt: 1350,
   meltsInto: E.LAVA,
   icon: 'rock',
 })
@@ -195,6 +189,7 @@ def({
 def({
   id: E.CRYSTAL,
   name: 'Crystal',
+  restless: true,
   category: Category.Solid,
   color: [150, 210, 230],
   colorNoise: 0.18,
@@ -202,13 +197,13 @@ def({
   emissive: true,
   acidProof: true,
   icon: 'crystal',
-  description: 'Glows faintly. Slowly grows toward nearby crystal.',
+  description: 'Glows faintly. Grows through water, spreading from crystal to crystal.',
   update(v, x, y) {
-    // occasionally crystallises an adjacent watery/empty cell next to two crystals
-    if (v.randInt(220) !== 0) return
+    // crystals grow by replacing adjacent WATER (not air) — so they spread only
+    // through water you provide, which makes for a real physics puzzle
+    if (v.randInt(70) !== 0) return
     for (const [dx, dy] of NEIGH4) {
-      const n = v.get(x + dx, y + dy)
-      if ((n === E.EMPTY || n === E.WATER) && countNeighbour(v, x + dx, y + dy, E.CRYSTAL) >= 2) {
+      if (v.get(x + dx, y + dy) === E.WATER) {
         v.set(x + dx, y + dy, E.CRYSTAL)
         return
       }
@@ -254,15 +249,17 @@ def({
   id: E.SNOW,
   name: 'Snow',
   category: Category.Powder,
+  restless: true,
   color: [236, 242, 250],
   colorNoise: 0.08,
   density: 20,
   baseTemp: -8,
-  heat: -10,
+  heat: -8,
   meltsAt: 2,
   meltsInto: E.WATER,
   icon: 'snow',
-  description: 'Cold and light. Melts into water when it warms.',
+  description: 'Cold and light. Freezes water it touches into ice; melts when it warms.',
+  reactions: [{ with: E.WATER, neighbourBecomes: E.ICE, chance: 0.06 }],
 })
 def({
   id: E.SALT,
@@ -333,6 +330,7 @@ def({
 def({
   id: E.LAVA,
   name: 'Lava',
+  overwrites: true,
   category: Category.Liquid,
   color: [240, 120, 36],
   colorNoise: 0.18,
@@ -349,6 +347,7 @@ def({
 def({
   id: E.ACID,
   name: 'Acid',
+  overwrites: true,
   category: Category.Liquid,
   color: [150, 230, 70],
   colorNoise: 0.12,
@@ -459,6 +458,7 @@ def({
 def({
   id: E.CLOUD,
   name: 'Cloud',
+  restless: true,
   category: Category.Gas,
   color: [225, 230, 240],
   colorNoise: 0.06,
@@ -477,6 +477,7 @@ def({
 def({
   id: E.FIRE,
   name: 'Fire',
+  overwrites: true,
   category: Category.Energy,
   color: [255, 150, 40],
   colorNoise: 0.2,
@@ -488,11 +489,12 @@ def({
   icon: 'fire',
   description: 'Spreads through anything flammable, then dies to smoke.',
   update(v, x, y) {
-    // spread to flammable neighbours
+    // spread to flammable neighbours (but never into a flammable cell that is
+    // touching water — water wins, so dousing actually works)
     for (const [dx, dy] of NEIGH8) {
       const n = v.get(x + dx, y + dy)
       const el = ELEMENTS[n]
-      if (el?.flammable && v.randInt(4) === 0) {
+      if (el?.flammable && v.randInt(4) === 0 && !anyNeighbour(v, x + dx, y + dy, E.WATER)) {
         v.set(x + dx, y + dy, el.burnsInto ?? E.FIRE, 700)
         if (el.burnLife) v.setLife(x + dx, y + dy, el.burnLife)
       }
@@ -508,6 +510,7 @@ def({
 def({
   id: E.EMBER,
   name: 'Ember',
+  overwrites: true,
   category: Category.Powder,
   color: [220, 90, 30],
   colorNoise: 0.25,
@@ -534,6 +537,7 @@ def({
 def({
   id: E.SPARK,
   name: 'Spark',
+  overwrites: true,
   category: Category.Energy,
   color: [255, 244, 150],
   colorNoise: 0.2,
@@ -563,6 +567,7 @@ def({
 def({
   id: E.LIGHTNING,
   name: 'Lightning',
+  overwrites: true,
   category: Category.Energy,
   color: [220, 230, 255],
   colorNoise: 0.1,
@@ -590,31 +595,24 @@ def({
   id: E.ICE,
   name: 'Ice',
   category: Category.Solid,
+  restless: true,
   color: [180, 220, 245],
   colorNoise: 0.08,
   density: 30,
   baseTemp: -10,
-  heat: -14,
+  heat: -12,
   meltsAt: 2,
   meltsInto: E.WATER,
   icon: 'ice',
-  description: 'Frozen water. Freezes water it touches when cold.',
-  update(v, x, y) {
-    if (v.getTemp(x, y) < -1 && v.randInt(20) === 0) {
-      for (const [dx, dy] of NEIGH4) {
-        if (v.get(x + dx, y + dy) === E.WATER) {
-          v.set(x + dx, y + dy, E.ICE, -8)
-          return
-        }
-      }
-    }
-  },
+  description: 'Frozen water. Spreads through water it touches; melts when warmed.',
+  reactions: [{ with: E.WATER, neighbourBecomes: E.ICE, chance: 0.04 }],
 })
 
 // ---- life ------------------------------------------------------------------
 def({
   id: E.PLANT,
   name: 'Plant',
+  restless: true,
   category: Category.Life,
   color: [70, 170, 70],
   colorNoise: 0.18,
@@ -651,6 +649,7 @@ def({
 def({
   id: E.VINE,
   name: 'Vine',
+  restless: true,
   category: Category.Life,
   color: [60, 150, 80],
   colorNoise: 0.16,
@@ -671,6 +670,7 @@ def({
 def({
   id: E.SEED,
   name: 'Seed',
+  restless: true,
   category: Category.Powder,
   color: [150, 120, 60],
   colorNoise: 0.14,

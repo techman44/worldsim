@@ -10,6 +10,8 @@ export interface AppState {
   eventType: EventType
   brush: number
   mirror: boolean
+  /** pin painted solids/powders so they don't fall (build mode) */
+  staticPaint: boolean
   paused: boolean
   speed: number // sim steps per rendered frame (can be fractional)
   showGlow: boolean
@@ -31,6 +33,7 @@ export const state: AppState = {
   eventType: 'volcano',
   brush: 3,
   mirror: false,
+  staticPaint: false,
   paused: false,
   speed: 1,
   showGlow: true,

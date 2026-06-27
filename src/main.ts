@@ -101,6 +101,10 @@ const actions: UIActions = {
   recenter() {
     fitCamera()
   },
+  zoom(factor) {
+    const r = stage.getBoundingClientRect()
+    camera.zoomAt(factor, r.width / 2, r.height / 2)
+  },
   save() {
     const name = prompt('Save as:', 'world ' + (listSlots().length + 1))
     if (name) {
@@ -202,8 +206,8 @@ function handleStrokePoint(wx: number, wy: number, start: boolean, px?: number, 
   const y = wy
   switch (state.tool) {
     case 'paint':
-      if (start || px === undefined) paintCircle(world, x, y, state.brush, state.element, state.mirror)
-      else paintLine(world, px, py!, x, y, state.brush, state.element, state.mirror)
+      if (start || px === undefined) paintCircle(world, x, y, state.brush, state.element, state.mirror, state.staticPaint)
+      else paintLine(world, px, py!, x, y, state.brush, state.element, state.mirror, state.staticPaint)
       break
     case 'erase':
       if (start || px === undefined) paintCircle(world, x, y, state.brush, 0, state.mirror)

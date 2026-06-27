@@ -144,28 +144,63 @@ body {
   gap: 8px;
 }
 
+/* make interactive controls clickable (the .ui layer itself is pass-through) */
+.ui input,
+.ui label,
+.ui .slider {
+  pointer-events: auto;
+}
+
 /* ---- tool rail ---- */
 .rail {
   position: absolute;
-  top: 50%;
+  top: calc(var(--safe-top) + 58px);
   right: calc(var(--safe-right) + 8px);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: calc(100dvh - 230px);
+  overflow-y: auto;
+  scrollbar-width: none;
+  padding: 2px;
+  touch-action: pan-y;
+}
+.rail::-webkit-scrollbar {
+  display: none;
+}
+
+/* ---- zoom cluster (left) ---- */
+.zoom-cluster {
+  position: absolute;
+  left: calc(var(--safe-left) + 8px);
+  top: 50%;
   transform: translateY(-50%);
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-/* ---- bottom bar ---- */
-.bottombar {
+/* ---- bottom dock (palette + time controls stacked) ---- */
+.dock {
   position: absolute;
-  left: calc(var(--safe-left) + 8px);
-  right: calc(var(--safe-right) + 8px);
-  bottom: calc(var(--safe-bottom) + 8px);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 calc(var(--safe-right) + 8px) calc(var(--safe-bottom) + 8px) calc(var(--safe-left) + 8px);
+  pointer-events: none;
+  z-index: 3;
+}
+.dock > * {
+  pointer-events: auto;
+}
+.bottombar {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  z-index: 3;
 }
 .slider {
   display: flex;
@@ -200,11 +235,7 @@ body {
 
 /* ---- palette ---- */
 .palette-wrap {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: calc(var(--safe-bottom) + 64px);
-  padding: 0 8px;
+  width: 100%;
 }
 .palette {
   display: flex;
@@ -218,6 +249,9 @@ body {
   backdrop-filter: blur(8px);
   scrollbar-width: thin;
   -webkit-overflow-scrolling: touch;
+  /* allow horizontal swipe to scroll the palette (page-level touch-action is
+     none to stop canvas scroll, so we must re-enable it here) */
+  touch-action: pan-x;
 }
 .palette::-webkit-scrollbar {
   height: 5px;
@@ -442,9 +476,10 @@ body {
 .player-controls {
   position: absolute;
   left: calc(var(--safe-left) + 8px);
-  bottom: calc(var(--safe-bottom) + 120px);
+  bottom: calc(var(--safe-bottom) + 160px);
   display: none;
   gap: 10px;
+  z-index: 4;
 }
 .player-controls.show {
   display: flex;
@@ -768,5 +803,28 @@ body {
   }
   .slider-label {
     display: none;
+  }
+  .icon-btn {
+    width: 38px;
+    height: 38px;
+  }
+  .icon-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+  .pal-btn {
+    width: 50px;
+  }
+  .swatch {
+    width: 34px;
+    height: 34px;
+  }
+}
+/* short screens: keep the tool rail from colliding with the dock */
+@media (max-height: 520px) {
+  .zoom-cluster {
+    top: auto;
+    bottom: calc(var(--safe-bottom) + 160px);
+    transform: none;
   }
 }
