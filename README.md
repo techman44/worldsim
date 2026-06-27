@@ -12,7 +12,7 @@ A **falling-sand world simulator** that installs as a Progressive Web App on pho
 - **Tools** — paint, erase, adjustable brush, drag/line painting, flood fill, eyedropper, and a vertical **mirror** mode for fast symmetric builds.
 - **Stamps** — castle, house, car, monster truck, tree, pond, volcano cone, rocket — authored as ASCII art, trivial to extend.
 - **Events** — volcano, tornado, lightning, snowstorm, rain, earthquake, meteor — with screen shake, flash, haptics and synthesized sound.
-- **Challenges** — pre-built puzzle worlds (grow a forest, fill the well, freeze the lake, put out the fire…) with optional restricted toolsets, plus a free-play sandbox.
+- **Challenges** — **30 puzzle levels across 6 difficulty tiers** (grow a forest, fill the well, freeze the lake, quench lava, dissolve a vault, breach a wall…), built on a validated *archetype* system. Early tiers restrict the palette; later tiers hand you everything and the puzzle is working out *which* element to use. Plus a free-play sandbox.
 - **Procedural terrain** generator for instant starting worlds.
 - **Mobile-first UI** — icon palette, tool rail, time controls (pause/play/step/speed), one-finger draw, two-finger pan & pinch-zoom.
 - **Looks good** — per-cell color noise, emissive glow/bloom on lava & fire, a particle overlay, a sky gradient and an optional day/night cycle.
@@ -30,6 +30,7 @@ npm install
 npm run dev       # local dev server (Vite)
 npm run build     # type-check + production build into dist/
 npm run preview   # serve the production build
+npm run validate  # run every challenge level through the real engine, headless
 ```
 
 App icons (PNG + SVG favicon) are generated with zero dependencies by
@@ -54,7 +55,9 @@ src/
     events.ts           #   scripted environmental events
     terrain.ts          #   procedural terrain generator
   game/
-    challenges.ts       #   challenge/mission definitions + win-condition checks
+    archetypes.ts       #   tested, parameterised level mechanics (build + win check)
+    levels.ts           #   level DATA (30 levels = archetype + params + flavour)
+    challenges.ts       #   binds levels to archetypes -> runtime challenges
   render/
     renderer.ts         #   ImageData draw + per-cell noise + emissive glow + sky
     particles.ts        #   particle overlay
@@ -137,12 +140,33 @@ An event is a short scripted sequence with an `age`/`life` that manipulates
 cells and spawns particles each frame; set `placed: true` to let the player tap
 where it happens. It appears in the Event tool automatically.
 
-### Add a challenge
+### Add a challenge level
 
-Add a `Challenge` to `CHALLENGES` in `src/game/challenges.ts`. A challenge is a
-pre-built world (`build(world)`), an optional restricted palette (`allowed`), a
-hint, and a `check(world)` win condition that runs each second. The mission
-picker and objective HUD pick it up automatically.
+Challenges are split into **archetypes** (tested mechanics) and **levels**
+(data). To add a level, append an entry to `LEVELS` in `src/game/levels.ts`:
+
+```ts
+{
+  id: 't3-my-puzzle',
+  name: 'My Puzzle',
+  objective: 'Fuse the sand into 150 panes of glass.',
+  hint: 'Heat fuses sand into glass — pour lava across it.',
+  tier: 3,                 // difficulty 1..6
+  archetype: 'forgeGlass', // a mechanic from archetypes.ts
+  params: { goal: 150 },
+  allowed: [E.LAVA],       // omit for the archetype default; null = all elements
+}
+```
+
+Because the mechanic is a tested archetype, the level is guaranteed to compile,
+start un-solved and be solvable. To add a brand-new *mechanic*, add an
+`Archetype` (a `build(world, params)` + `check(world, params)`) to
+`src/game/archetypes.ts`.
+
+Run `npm run validate` to prove every level builds, starts un-solved, isn't
+winnable by doing nothing, and has a reachable goal — it runs the real engine
+headlessly in Node (`scripts/validate-levels.ts`). The 30 levels here were
+authored by a multi-agent workflow and gated by this validator.
 
 ## Modes
 

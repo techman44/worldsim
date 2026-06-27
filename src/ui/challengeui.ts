@@ -1,4 +1,4 @@
-import { CHALLENGES, type Challenge } from '../game/challenges'
+import { CHALLENGES, TIER_NAMES, type Challenge } from '../game/challenges'
 import { ELEMENTS } from '../sim/elements'
 import { icon } from './icons'
 
@@ -40,38 +40,55 @@ export class ChallengeUI {
     const modal = el('div', 'cmodal')
     const sheet = el('div', 'cmodal-sheet')
     const head = el('div', 'cmodal-head')
-    head.appendChild(el('h2', '', 'Choose a mode'))
+    const solved = CHALLENGES.filter((c) => this.done.has(c.id)).length
+    head.appendChild(el('h2', '', `Choose a mode`))
+    head.appendChild(el('span', 'cprogress', `${solved}/${CHALLENGES.length} solved`))
     const close = el('button', 'icon-btn', icon('close'))
     close.onclick = () => this.closePicker()
     head.appendChild(close)
     sheet.appendChild(head)
 
-    const grid = el('div', 'cgrid')
+    const body = el('div', 'cmodal-body')
 
+    // Free Play first
+    const freeGrid = el('div', 'cgrid')
     const free = el('button', 'ccard ccard-free')
     free.innerHTML = `<div class="ccard-ic">${icon('world')}</div><h3>Free Play</h3><p>The full sandbox — every element, stamp and event. Build whatever you like.</p>`
     free.onclick = () => {
       this.closePicker()
       this.cb.onFreePlay()
     }
-    grid.appendChild(free)
+    freeGrid.appendChild(free)
+    body.appendChild(freeGrid)
 
-    for (const ch of CHALLENGES) {
-      const card = el('button', 'ccard')
-      const restricted = ch.allowed ? ch.allowed.map((id) => ELEMENTS[id]?.name).join(', ') : 'All elements'
-      const doneBadge = this.done.has(ch.id) ? `<span class="cbadge">${icon('trophy')} done</span>` : ''
-      card.innerHTML = `
-        <div class="ccard-ic">${icon('target')}</div>
-        <h3>${ch.name} ${doneBadge}</h3>
-        <p>${ch.objective}</p>
-        <span class="callowed">${ch.allowed ? 'Limited to: ' : ''}${restricted}</span>`
-      card.onclick = () => {
-        this.closePicker()
-        this.cb.onSelect(ch)
+    // challenges grouped by difficulty tier
+    const tiers = [...new Set(CHALLENGES.map((c) => c.tier))].sort((a, b) => a - b)
+    for (const tier of tiers) {
+      const inTier = CHALLENGES.filter((c) => c.tier === tier)
+      const tierSolved = inTier.filter((c) => this.done.has(c.id)).length
+      const header = el('div', 'ctier-head')
+      header.innerHTML = `<span class="ctier-n">${tier}</span><b>${TIER_NAMES[tier] ?? 'Tier ' + tier}</b><span class="ctier-prog">${tierSolved}/${inTier.length}</span>`
+      body.appendChild(header)
+      const grid = el('div', 'cgrid')
+      for (const ch of inTier) {
+        const card = el('button', 'ccard')
+        const restricted = ch.allowed ? ch.allowed.map((id) => ELEMENTS[id]?.name).join(', ') : 'All elements — work it out'
+        const doneBadge = this.done.has(ch.id) ? `<span class="cbadge">${icon('trophy')} done</span>` : ''
+        card.innerHTML = `
+          <div class="ccard-ic">${icon('target')}</div>
+          <h3>${ch.name} ${doneBadge}</h3>
+          <p>${ch.objective}</p>
+          <span class="callowed">${ch.allowed ? 'Limited to: ' : ''}${restricted}</span>`
+        card.onclick = () => {
+          this.closePicker()
+          this.cb.onSelect(ch)
+        }
+        grid.appendChild(card)
       }
-      grid.appendChild(card)
+      body.appendChild(grid)
     }
-    sheet.appendChild(grid)
+
+    sheet.appendChild(body)
     modal.appendChild(sheet)
     modal.addEventListener('click', (e) => {
       if (e.target === modal) this.closePicker()

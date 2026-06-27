@@ -12,3 +12,4 @@ public/favicon.svg
 
 # scratch
 _smoke*.mjs
+scripts/_validate.mjs
