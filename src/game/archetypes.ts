@@ -194,19 +194,20 @@ export const ARCHETYPES: Record<string, Archetype> = {
       const right = cx + (bw >> 1)
       const top = surface - bh
       const bottom = surface - 1
-      // a hollow wooden cabin: walls (2 thick) + floor, fully open top so water
-      // poured in reaches every wall cell and douses it (no unreachable beams).
-      fillRect(w, left, top, left + 1, bottom, E.WOOD)
-      fillRect(w, right - 1, top, right, bottom, E.WOOD)
-      fillRect(w, left, bottom - 1, right, bottom, E.WOOD)
+      // a hollow wooden cabin: single-thickness walls + floor, fully open top so
+      // water poured inside reaches every wall cell (each has interior water on
+      // one side) and douses it.
+      fillRect(w, left, top, left, bottom, E.WOOD)
+      fillRect(w, right, top, right, bottom, E.WOOD)
+      fillRect(w, left, bottom, right, bottom, E.WOOD)
       const total = countId(w, E.WOOD)
       p._keep = Math.floor(total * (p.keep ?? 0.5))
       // start a fire low on one wall
       let lit = 0
       for (let attempt = 0; attempt < 400 && lit < 5; attempt++) {
         const y = bottom - 2 - ((Math.abs(Math.cos(attempt * 7.3)) * 8) | 0)
-        if (w.get(left + 1, y) === E.WOOD) {
-          w.set(left + 1, y, E.FIRE, 700)
+        if (w.get(left, y) === E.WOOD) {
+          w.set(left, y, E.FIRE, 700)
           lit++
         }
       }
