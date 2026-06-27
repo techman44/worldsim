@@ -1,0 +1,21 @@
+{
+  "name": "worldsim",
+  "version": "1.0.0",
+  "description": "World Sim — a touch-first falling-sand world simulator PWA",
+  "type": "module",
+  "scripts": {
+    "icons": "node scripts/gen-icons.mjs",
+    "predev": "node scripts/gen-icons.mjs",
+    "prebuild": "node scripts/gen-icons.mjs",
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "validate": "esbuild scripts/validate-levels.ts --bundle --platform=node --format=esm --outfile=scripts/_validate.mjs && node scripts/_validate.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.21.5",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10",
+    "vite-plugin-pwa": "^0.20.5"
+  }
+}
