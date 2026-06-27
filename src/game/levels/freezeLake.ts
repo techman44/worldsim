@@ -11,7 +11,7 @@ export const freezeLake: Level[] = [
     tier: 1,
     archetype: "freezeLake",
     params: { ratio: 0.5 },
-    allowed: [E.SNOW, E.ICE],
+    allowed: [E.SNOW],
   },
   {
     id: "x3-frostfall-puddle",
@@ -21,7 +21,7 @@ export const freezeLake: Level[] = [
     tier: 1,
     archetype: "freezeLake",
     params: { ratio: 0.4 },
-    allowed: [E.SNOW, E.ICE, E.WATER],
+    allowed: [E.SNOW],
   },
   {
     id: "freeze",
@@ -31,7 +31,7 @@ export const freezeLake: Level[] = [
     tier: 2,
     archetype: "freezeLake",
     params: { ratio: 0.6 },
-    allowed: [E.SNOW, E.ICE],
+    allowed: [E.SNOW],
   },
   {
     id: "x3-quiet-millpond",
@@ -41,7 +41,7 @@ export const freezeLake: Level[] = [
     tier: 2,
     archetype: "freezeLake",
     params: { ratio: 0.5 },
-    allowed: [E.SNOW, E.ICE, E.WATER],
+    allowed: [E.SNOW],
   },
   {
     id: "x3-glacier-tarn",
@@ -51,7 +51,7 @@ export const freezeLake: Level[] = [
     tier: 3,
     archetype: "freezeLake",
     params: { ratio: 0.55 },
-    allowed: [E.SNOW, E.ICE, E.WATER, E.WALL],
+    allowed: [E.SNOW],
   },
   {
     id: "t4-mirror-lake",
@@ -71,7 +71,7 @@ export const freezeLake: Level[] = [
     tier: 4,
     archetype: "freezeLake",
     params: { ratio: 0.62 },
-    allowed: [E.SNOW, E.ICE, E.WATER, E.WALL, E.STONE],
+    allowed: [E.SNOW],
   },
   {
     id: "x3-the-frozen-fjord",

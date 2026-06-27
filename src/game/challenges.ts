@@ -43,7 +43,12 @@ export function toChallenge(level: Level): Challenge {
   if (!arch) throw new Error(`Unknown archetype "${level.archetype}" in level "${level.id}"`)
   // clone params per challenge so build() baselines don't leak between instances
   const params = { ...(level.params ?? {}) }
-  const allowed = level.allowed === undefined ? arch.defaultAllowed : level.allowed
+  let allowed = level.allowed === undefined ? arch.defaultAllowed : level.allowed
+  // strip any "paint the answer" elements so the win must come from physics
+  if (allowed && arch.forbidInPalette) {
+    allowed = allowed.filter((id) => !arch.forbidInPalette!.includes(id))
+    if (!allowed.length) allowed = arch.defaultAllowed
+  }
   return {
     id: level.id,
     name: level.name,

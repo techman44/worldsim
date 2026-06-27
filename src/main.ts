@@ -101,6 +101,10 @@ const actions: UIActions = {
   recenter() {
     fitCamera()
   },
+  zoom(factor) {
+    const r = stage.getBoundingClientRect()
+    camera.zoomAt(factor, r.width / 2, r.height / 2)
+  },
   save() {
     const name = prompt('Save as:', 'world ' + (listSlots().length + 1))
     if (name) {

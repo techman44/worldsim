@@ -90,7 +90,14 @@ export class World implements SimView {
     return (rng() * n) | 0
   }
 
-  /** Mark a chunk and its 8 neighbours active for the next frame. */
+  /**
+   * Mark a chunk and its 8 neighbours active. We set BOTH the current and next
+   * activity buffers: edits that happen between frames (e.g. the player painting
+   * into a settled, sleeping region) must land in the buffer the next step reads
+   * — otherwise the start-of-step clear would drop them and the cells would sit
+   * frozen exactly as painted. Internal moves only ever add work, so setting the
+   * current buffer too is harmless (it just lets activity cascade within a frame).
+   */
   wake(x: number, y: number) {
     const cx = (x / CHUNK) | 0
     const cy = (y / CHUNK) | 0
@@ -99,7 +106,9 @@ export class World implements SimView {
         const nx = cx + i
         const ny = cy + j
         if (nx >= 0 && ny >= 0 && nx < this.chunksX && ny < this.chunksY) {
-          this.activeNext[ny * this.chunksX + nx] = 1
+          const idx = ny * this.chunksX + nx
+          this.activeNow[idx] = 1
+          this.activeNext[idx] = 1
         }
       }
     }
@@ -229,10 +238,12 @@ export class World implements SimView {
     let t = this.temp[i]
     // relax toward ambient
     t += (this.ambient - t) * 0.012
-    // self-sustaining heat sources, and push heat to neighbours
+    // self-sustaining heat sources, and push heat to neighbours.
+    // Only HOT sources pin their own temperature (fire/lava stay hot); cold
+    // sources emit cold to neighbours but follow normal temperature themselves,
+    // so snow/ice can still melt when something heats them.
     if (el.heat !== undefined) {
       if (el.heat >= 0) t = Math.max(t, el.heat)
-      else t = Math.min(t, el.heat)
       for (let dy = -1; dy <= 1; dy++) {
         for (let dx = -1; dx <= 1; dx++) {
           if (!dx && !dy) continue
@@ -242,11 +253,32 @@ export class World implements SimView {
           const ni = ny * this.width + nx
           if (this.cells[ni] === E.WALL) continue
           this.temp[ni] += (el.heat - this.temp[ni]) * 0.06
-          if (Math.abs(el.heat - this.temp[ni]) > 4) this.wake(nx, ny)
+          // wake the neighbour if it's still equalising OR if conducted heat just
+          // pushed it across a phase-change threshold — otherwise a cell can reach
+          // freezing/melting/boiling/ignition temperature while its chunk sleeps
+          // and the transition would never run.
+          if (
+            Math.abs(el.heat - this.temp[ni]) > 4 ||
+            this.wantsTransition(this.cells[ni], this.temp[ni])
+          ) {
+            this.wake(nx, ny)
+          }
         }
       }
     }
     this.temp[i] = t
+  }
+
+  /** would this element change state at temperature t? */
+  private wantsTransition(id: number, t: number): boolean {
+    const el = ELEMENTS[id]
+    if (!el) return false
+    return !!(
+      (el.meltsAt !== undefined && t >= el.meltsAt) ||
+      (el.boilsAt !== undefined && t >= el.boilsAt) ||
+      (el.freezesAt !== undefined && t <= el.freezesAt) ||
+      (el.flammable && el.igniteTemp !== undefined && t >= el.igniteTemp)
+    )
   }
 
   private transitions(x: number, y: number, id: number): boolean {
@@ -293,6 +325,20 @@ export class World implements SimView {
     return false
   }
 
+  /** does this cell have an empty/water neighbour it could grow into? */
+  private hasGrowthRoom(x: number, y: number): boolean {
+    return (
+      this.get(x, y - 1) === E.EMPTY ||
+      this.get(x, y + 1) === E.EMPTY ||
+      this.get(x - 1, y) === E.EMPTY ||
+      this.get(x + 1, y) === E.EMPTY ||
+      this.get(x, y - 1) === E.WATER ||
+      this.get(x, y + 1) === E.WATER ||
+      this.get(x - 1, y) === E.WATER ||
+      this.get(x + 1, y) === E.WATER
+    )
+  }
+
   // --- the step --------------------------------------------------------------
   step() {
     this.frame++
@@ -322,6 +368,10 @@ export class World implements SimView {
             const el = ELEMENTS[id]
             if (el.update) el.update(this, x, y)
             if (this.cells[i] !== id) continue // changed by its own hook
+
+            // keep "living" growers awake while they still have somewhere to
+            // grow, so slow stochastic growth never stalls when a region settles
+            if (el.restless && this.hasGrowthRoom(x, y)) this.wake(x, y)
 
             switch (el.category) {
               case Category.Powder:

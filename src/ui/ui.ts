@@ -16,6 +16,7 @@ export interface UIActions {
   togglePlayer(on: boolean): void
   setResolution(w: number, h: number): void
   recenter(): void
+  zoom(factor: number): void
   step(): void
   apply(): void // push state -> engine/renderer
 }
@@ -33,6 +34,7 @@ function rgb(c: [number, number, number]) {
 
 export class UI {
   private root: HTMLElement
+  private dock!: HTMLElement
   private paletteWrap: HTMLElement
   private toolButtons = new Map<Tool, HTMLElement>()
   private hudEl: HTMLElement
@@ -53,8 +55,13 @@ export class UI {
 
     this.buildTopBar()
     this.buildToolRail()
+    this.buildZoomCluster()
+    // a single bottom dock so the palette and time controls stack instead of
+    // overlapping on small phones
+    this.dock = el('div', 'dock')
     this.paletteWrap = el('div', 'palette-wrap')
-    this.root.appendChild(this.paletteWrap)
+    this.dock.appendChild(this.paletteWrap)
+    this.root.appendChild(this.dock)
     this.buildBottomBar()
     this.buildPanel()
     this.playerControls = this.buildPlayerControls()
@@ -162,7 +169,16 @@ export class UI {
     brushWrap.append(brushLbl, brush, this.brushLabel)
     bar.appendChild(brushWrap)
 
-    this.root.appendChild(bar)
+    this.dock.appendChild(bar)
+  }
+
+  // ---- zoom cluster (left side) --------------------------------------------
+  private buildZoomCluster() {
+    const cluster = el('div', 'zoom-cluster')
+    cluster.appendChild(this.iconBtn('plus', 'Zoom in', () => this.actions.zoom(1.25)))
+    cluster.appendChild(this.iconBtn('minus', 'Zoom out', () => this.actions.zoom(1 / 1.25)))
+    cluster.appendChild(this.iconBtn('move', 'Fit / recenter', () => this.actions.recenter()))
+    this.root.appendChild(cluster)
   }
 
   // ---- palette (content depends on tool) -----------------------------------

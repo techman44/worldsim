@@ -76,6 +76,12 @@ export interface Element {
   heat?: number
   /** initial life value when a cell of this element is created */
   initialLife?: number
+  /**
+   * "Living" elements that act stochastically (plants, vines, crystals, clouds)
+   * keep their chunk awake while they still have room to act, so slow growth
+   * never stalls when a region would otherwise settle.
+   */
+  restless?: boolean
   /** declarative adjacency reactions */
   reactions?: Reaction[]
   /** optional bespoke per-cell update, run after generic movement */

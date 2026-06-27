@@ -11,7 +11,7 @@ export const growCrystals: Level[] = [
     tier: 1,
     archetype: "growCrystals",
     params: { goal: 55 },
-    allowed: [E.CRYSTAL, E.WATER],
+    allowed: [E.WATER],
   },
   {
     id: "t2-cavern-geode",
@@ -21,7 +21,7 @@ export const growCrystals: Level[] = [
     tier: 2,
     archetype: "growCrystals",
     params: { goal: 90 },
-    allowed: [E.CRYSTAL, E.WATER],
+    allowed: [E.WATER],
   },
   {
     id: "x10-prism-nook",
@@ -31,7 +31,7 @@ export const growCrystals: Level[] = [
     tier: 2,
     archetype: "growCrystals",
     params: { goal: 70 },
-    allowed: [E.CRYSTAL, E.WATER, E.WALL],
+    allowed: [E.WATER],
   },
   {
     id: "x10-shimmer-hollow",
@@ -41,7 +41,7 @@ export const growCrystals: Level[] = [
     tier: 3,
     archetype: "growCrystals",
     params: { goal: 85 },
-    allowed: [E.CRYSTAL, E.WATER, E.WALL, E.STONE],
+    allowed: [E.WATER],
   },
   {
     id: "t4-emerald-cavern",
@@ -61,7 +61,7 @@ export const growCrystals: Level[] = [
     tier: 4,
     archetype: "growCrystals",
     params: { goal: 100 },
-    allowed: [E.CRYSTAL, E.WATER, E.ICE, E.WALL, E.STONE],
+    allowed: [E.WATER],
   },
   {
     id: "x10-deep-vein-grotto",
